@@ -6,14 +6,20 @@
 #   include transmission_daemon
 class transmission_daemon(
 
-  Boolean $manage_service,
-  Boolean $manage_install,
-  Hash $transmission_settings,
+  Boolean $manage_install = true,
+  Boolean $manage_service = true,
+  Hash $transmission_setting = {},
   String $settings_json_file = '/var/lib/transmission/.config/transmission-daemon/settings.json',
   String $transmission_owner = 'transmission',
   String $transmission_group = 'transmission',
 
 ) {
+
+  if ( $manage_install) {
+    package{ ['transmission-daemon','transmission-common']:
+      ensure => installed,
+    }
+  }
 
   if ( $manage_service) {
     service{ 'transmission-daemon':
@@ -22,24 +28,19 @@ class transmission_daemon(
     }
   }
 
-  if ( $manage_install) {
-    package{ ['transmission-daemon','transmission-common']:
-      ensure => installed,
-    }
-  }
   
   file{ $settings_json_file:
     ensure  => file,
     owner   => $transmission_owner,
     group   => $transmission_group,
     mode    => '0600',
-    content => epp('transmission_daemon/settings.json.epp'),
+    content => epp('transmission_daemon/settings.json.epp', {transmission_setting => $transmission_setting }),
   }
 
   exec{ 'reload-settings-from-disk':
-    command   => 'kill -HUP $(pidof transmission-daemon)',
+    command   => 'kill -s HUP $(pidof transmission-daemon)',
     path      => '/sbin:/bin:/usr/sbin:/usr/bin',
-    onlyif    => 'pidof transmission-daemon',
+    unless    => 'pidof transmission-daemon',
     subscribe => File[$settings_json_file],
   }
 

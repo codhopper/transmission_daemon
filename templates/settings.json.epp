@@ -1,13 +1,4 @@
-<%- | Hash $transmission_setting,
+<%- | Hash[Any,Any] $transmission_setting,
 | -%>
-{
-<% $transmission_setting.each |$key, $value| { -%>
-  <%- if $key =~ String { -%> 
-    <%- if $value =~ String { -%> 
-    "<%= $key %>": "<%= $value %>",
-    <%- }else{ -%>
-    "<%= $key %>": <%= $value %>,
-    <%- } -%>
-  <%- } -%>
-<%- } -%>
-}
+
+<%= to_json_pretty($transmission_setting) -%>
