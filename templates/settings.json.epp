@@ -1,4 +1,4 @@
-<%- | Hash[Any,Any] $transmission_setting,
+<%- | Hash[Any,Any] $settings,
 | -%>
 
-<%= to_json_pretty($transmission_setting) -%>
+<%= to_json_pretty($settings) -%>

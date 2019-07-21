@@ -1,4 +1,4 @@
-# @summary A short summary of the purpose of this class
+# @summary Install the transmission daemon, manage it and configure settings
 #
 # A description of what this class does
 #
@@ -6,9 +6,9 @@
 #   include transmission_daemon
 class transmission_daemon(
 
-  Boolean $manage_install = true,
-  Boolean $manage_service = true,
-  Hash $transmission_setting = {},
+  Boolean $manage_install    = true,
+  Boolean $manage_service    = true,
+  Hash $settings             = {},
   String $settings_json_file = '/var/lib/transmission/.config/transmission-daemon/settings.json',
   String $transmission_owner = 'transmission',
   String $transmission_group = 'transmission',
@@ -27,14 +27,18 @@ class transmission_daemon(
       enable => true,
     }
   }
+ 
+  if ( $manage_service ) and ( $manage_install ) {
+    Package['transmission-daemon','transmission-common']
+    -> Service['transmission-daemon']
+  }
 
-  
   file{ $settings_json_file:
     ensure  => file,
     owner   => $transmission_owner,
     group   => $transmission_group,
     mode    => '0600',
-    content => epp('transmission_daemon/settings.json.epp', {transmission_setting => $transmission_setting }),
+    content => epp('transmission_daemon/settings.json.epp', {settings => $settings }),
   }
 
   exec{ 'reload-settings-from-disk':
